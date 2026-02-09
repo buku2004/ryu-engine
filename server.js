@@ -11,7 +11,10 @@ app.use(cors());
 const { PORT, TYPESENSE_API_KEY, TYPESENSE_HOST } = process.env;
 
 app.get("/search", async (req, res) => {
-  const q = req.query.q || "";
+  const q = req.query.q?.trim();
+  if (!q) {
+    return res.status(400).json({ error: "Query is required" });
+  }
 
   try {
     const response = await axios.post(
@@ -30,9 +33,12 @@ app.get("/search", async (req, res) => {
 
     res.json(response.data);
   } catch (err) {
-    res.status(500).json({ error: "Search failed" });
+    console.error("FULL ERROR ↓↓↓");
+    console.error(err.response?.data || err.message);
+    res.status(500).json(err.response?.data || err.message);
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
