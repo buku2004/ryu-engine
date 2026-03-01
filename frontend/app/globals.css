@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  --bg-primary: #0f1117;
+  --bg-raised: #161822;
+  --bg-overlay: #1e2030;
+  --text-primary: #e4e6f0;
+  --text-secondary: #8b8fa3;
+  --accent-glow: #337dfc;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-overlay);
+  border-radius: 3px;
+}
+
+/* Glow focus ring */
+.focus-glow:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(51, 125, 252, 0.5), 0 0 20px rgba(51, 125, 252, 0.2);
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(22, 24, 34, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+}

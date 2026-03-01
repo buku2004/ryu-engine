@@ -10,6 +10,17 @@ app.use(cors());
 
 const { PORT, TYPESENSE_API_KEY, TYPESENSE_HOST } = process.env;
 
+if (!TYPESENSE_HOST || !TYPESENSE_API_KEY) {
+  console.error("Missing TYPESENSE_HOST or TYPESENSE_API_KEY in environment.");
+  console.error("Ensure your .env contains TYPESENSE_HOST and TYPESENSE_API_KEY and restart the server.");
+  process.exit(1);
+}
+
+const port = PORT || 3000;
+
+console.log(`Using Typesense host: ${TYPESENSE_HOST}`);
+console.log(`Backend will listen on port ${port}`);
+
 app.get("/search", async (req, res) => {
   const q = req.query.q?.trim();
   if (!q) {
@@ -40,6 +51,6 @@ app.get("/search", async (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Backend running on http://localhost:${port}`);
 });

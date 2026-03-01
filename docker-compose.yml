@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  # ── Typesense (keyword search) ──────────────────────────
+  typesense:
+    image: typesense/typesense:27.1
+    container_name: ryu-typesense
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense-data:/data
+    environment:
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-xyz}
+      TYPESENSE_DATA_DIR: /data
+    command: [ "--data-dir", "/data", "--api-key", "${TYPESENSE_API_KEY:-xyz}" ]
+
+  # ── Qdrant (vector search) ─────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.11.5
+    container_name: ryu-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+  # ── FastAPI Backend ─────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: ryu-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      TYPESENSE_HOST: typesense
+      TYPESENSE_PORT: 8108
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+    depends_on:
+      - typesense
+      - qdrant
+
+  # ── Next.js Frontend ────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://backend:8000
+    container_name: ryu-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  typesense-data:
+  qdrant-data:
