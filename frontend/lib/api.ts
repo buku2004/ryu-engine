@@ -77,7 +77,10 @@ export async function chat(
             search_context: true,
         }),
     });
-    if (!res.ok) throw new Error(`Chat failed: ${res.statusText}`);
+    if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.detail || `Chat failed: ${res.statusText}`);
+    }
     return res.json();
 }
 

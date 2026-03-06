@@ -38,11 +38,12 @@ export default function ChatPage() {
                 },
             ]);
         } catch (err) {
+            const message = err instanceof Error ? err.message : "Sorry, something went wrong. Please try again.";
             setMessages((prev) => [
                 ...prev,
                 {
                     role: "assistant",
-                    content: "Sorry, something went wrong. Please try again.",
+                    content: message,
                 },
             ]);
         } finally {

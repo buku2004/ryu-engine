@@ -1,7 +1,10 @@
 """LLM service — GPT-4 / Gemini for RAG summarisation."""
 
+import logging
 from openai import OpenAI
 from app.config import get_settings
+
+log = logging.getLogger(__name__)
 
 _openai_client: OpenAI | None = None
 
@@ -66,28 +69,36 @@ async def generate_answer(
 
 async def _call_openai(messages: list[dict], s) -> str:
     """Call OpenAI chat completion."""
-    client = _get_openai_client()
-    response = client.chat.completions.create(
-        model=s.openai_chat_model,
-        messages=messages,
-        temperature=0.3,
-        max_tokens=1024,
-    )
-    return response.choices[0].message.content or ""
+    try:
+        client = _get_openai_client()
+        response = client.chat.completions.create(
+            model=s.openai_chat_model,
+            messages=messages,
+            temperature=0.3,
+            max_tokens=1024,
+        )
+        return response.choices[0].message.content or ""
+    except Exception as e:
+        log.error("OpenAI call failed: %s", e)
+        raise
 
 
 async def _call_gemini(messages: list[dict], s) -> str:
     """Call Gemini via Google's OpenAI-compatible endpoint."""
     from openai import OpenAI as GeminiClient
 
-    client = GeminiClient(
-        api_key=s.gemini_api_key,
-        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-    )
-    response = client.chat.completions.create(
-        model=s.gemini_model,
-        messages=messages,
-        temperature=0.3,
-        max_tokens=1024,
-    )
-    return response.choices[0].message.content or ""
+    try:
+        client = GeminiClient(
+            api_key=s.gemini_api_key,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        )
+        response = client.chat.completions.create(
+            model=s.gemini_model,
+            messages=messages,
+            temperature=0.3,
+            max_tokens=1024,
+        )
+        return response.choices[0].message.content or ""
+    except Exception as e:
+        log.error("Gemini call failed: %s", e)
+        raise
