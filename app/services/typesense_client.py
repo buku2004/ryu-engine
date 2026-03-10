@@ -81,6 +81,30 @@ async def delete_document(doc_id: str) -> None:
     client.collections[s.typesense_collection].documents[doc_id].delete()
 
 
+async def list_documents(limit: int = 20, offset: int = 0) -> dict:
+    """List all documents using a wildcard search."""
+    s = get_settings()
+    client = get_client()
+    params = {
+        "q": "*",
+        "query_by": "title",
+        "per_page": limit,
+        "page": (offset // limit) + 1,
+        "sort_by": "created_at:desc",
+    }
+    return client.collections[s.typesense_collection].documents.search(params)
+
+
+async def delete_all_documents() -> int:
+    """Delete all documents in the collection. Returns count deleted."""
+    s = get_settings()
+    client = get_client()
+    result = client.collections[s.typesense_collection].documents.delete(
+        {"filter_by": "source:!=[]"}  # matches all docs
+    )
+    return result.get("num_deleted", 0)
+
+
 async def health_check() -> bool:
     """Return True if Typesense is reachable."""
     try:

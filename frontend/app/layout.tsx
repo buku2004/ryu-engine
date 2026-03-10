@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
     title: "Ryu Engine — AI-Powered Topic Search",
     description:
-        "A hybrid search engine combining keyword search, semantic similarity, and AI-powered summarization for topic-specific knowledge discovery.",
+        "A hybrid search engine combining keyword search, semantic similarity, and AI-powered summarization for research paper discovery.",
 };
 
 export default function RootLayout({

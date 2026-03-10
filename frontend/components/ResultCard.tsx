@@ -25,6 +25,7 @@ export default function ResultCard({
     const [summary, setSummary] = useState<string | null>(null);
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [summaryError, setSummaryError] = useState("");
+    const [expanded, setExpanded] = useState(false);
 
     const handleSummarize = async () => {
         if (summary) {
@@ -57,10 +58,18 @@ export default function ResultCard({
                 </div>
             </div>
 
-            {/* Body preview */}
-            <p className="text-gray-400 text-sm leading-relaxed line-clamp-3 mb-4">
+            {/* Body preview / full content */}
+            <p className={`text-gray-400 text-sm leading-relaxed mb-4 whitespace-pre-wrap ${expanded ? "" : "line-clamp-3"}`}>
                 {body || "No content available."}
             </p>
+            {body && body.length > 200 && (
+                <button
+                    onClick={() => setExpanded(!expanded)}
+                    className="text-xs text-ryu-400 hover:text-ryu-300 transition-colors mb-4 -mt-2"
+                >
+                    {expanded ? "Show less ↑" : "Read full content ↓"}
+                </button>
+            )}
 
             {/* AI Summary */}
             {summary && (

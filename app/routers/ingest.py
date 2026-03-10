@@ -2,9 +2,9 @@
 
 import uuid
 from fastapi import APIRouter, HTTPException
-from app.models.document import WikiIngestRequest, DocumentIngest, IngestResponse
+from app.models.document import ArxivIngestRequest, DocumentIngest, IngestResponse
 from app.services import (
-    wiki_fetcher,
+    arxiv_fetcher,
     typesense_client,
     qdrant_client,
     embedding,
@@ -47,17 +47,18 @@ async def _index_documents(docs: list[dict]) -> int:
     return len(docs)
 
 
-@router.post("/wiki", response_model=IngestResponse)
-async def ingest_wiki(req: WikiIngestRequest):
-    """Fetch articles from a Fandom wiki and index them."""
+@router.post("/arxiv", response_model=IngestResponse)
+async def ingest_arxiv(req: ArxivIngestRequest):
+    """Fetch research papers from ArXiv and index them."""
     try:
-        articles = await wiki_fetcher.fetch_articles(
-            wiki=req.wiki,
+        articles = await arxiv_fetcher.fetch_papers(
+            query=req.query,
             limit=req.limit,
             category=req.category,
+            sort_by=req.sort_by,
         )
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Wiki fetch failed: {e}")
+        raise HTTPException(status_code=502, detail=f"ArXiv fetch failed: {e}")
 
     docs = [a.model_dump() for a in articles]
     count = await _index_documents(docs)
@@ -94,3 +95,43 @@ async def delete_document(doc_id: str):
     except Exception:
         pass
     return {"status": "deleted", "doc_id": doc_id}
+
+
+@router.get("/documents")
+async def list_documents(
+    limit: int = 20,
+    offset: int = 0,
+):
+    """Browse all ingested documents."""
+    raw = await typesense_client.list_documents(limit=limit, offset=offset)
+    docs = [
+        {
+            "id": h["document"]["id"],
+            "title": h["document"].get("title", ""),
+            "body": h["document"].get("body", "")[:200],
+            "author": h["document"].get("author", ""),
+            "source": h["document"].get("source", ""),
+        }
+        for h in raw.get("hits", [])
+    ]
+    return {
+        "documents": docs,
+        "total": raw.get("found", 0),
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+@router.delete("/documents")
+async def purge_all_documents():
+    """Delete ALL documents from both indexes."""
+    ts_count = 0
+    try:
+        ts_count = await typesense_client.delete_all_documents()
+    except Exception:
+        pass
+    try:
+        await qdrant_client.delete_all_vectors()
+    except Exception:
+        pass
+    return {"status": "purged", "typesense_deleted": ts_count}

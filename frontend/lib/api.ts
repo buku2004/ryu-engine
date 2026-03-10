@@ -107,22 +107,63 @@ export async function getAnalytics(): Promise<AnalyticsSummary> {
     return res.json();
 }
 
-export async function ingestWiki(
-    wiki: string,
+export async function ingestArxiv(
+    query: string,
     limit: number = 50,
-    category: string = ""
+    category: string = "",
+    sortBy: string = "relevance"
 ): Promise<IngestResponse> {
-    const res = await fetch(`${API}/ingest/wiki`, {
+    const res = await fetch(`${API}/ingest/arxiv`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wiki, limit, category }),
+        body: JSON.stringify({ query, limit, category, sort_by: sortBy }),
     });
-    if (!res.ok) throw new Error(`Wiki ingest failed: ${res.statusText}`);
+    if (!res.ok) throw new Error(`ArXiv ingest failed: ${res.statusText}`);
     return res.json();
 }
 
 export async function getHealth(): Promise<HealthStatus> {
     const res = await fetch(`${API}/health/services`);
     if (!res.ok) throw new Error(`Health check failed: ${res.statusText}`);
+    return res.json();
+}
+
+export interface BrowseDocument {
+    id: string;
+    title: string;
+    body: string;
+    author: string;
+    source: string;
+}
+
+export interface BrowseResponse {
+    documents: BrowseDocument[];
+    total: number;
+    limit: number;
+    offset: number;
+}
+
+export async function listDocuments(
+    limit: number = 20,
+    offset: number = 0
+): Promise<BrowseResponse> {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    const res = await fetch(`${API}/ingest/documents?${params}`);
+    if (!res.ok) throw new Error(`Failed to list documents: ${res.statusText}`);
+    return res.json();
+}
+
+export async function deleteDocument(docId: string): Promise<void> {
+    const res = await fetch(`${API}/ingest/documents/${encodeURIComponent(docId)}`, {
+        method: "DELETE",
+    });
+    if (!res.ok) throw new Error(`Delete failed: ${res.statusText}`);
+}
+
+export async function purgeAllDocuments(): Promise<{ status: string; typesense_deleted: number }> {
+    const res = await fetch(`${API}/ingest/documents`, {
+        method: "DELETE",
+    });
+    if (!res.ok) throw new Error(`Purge failed: ${res.statusText}`);
     return res.json();
 }

@@ -18,6 +18,11 @@ const BADGE_STYLES: Record<string, { bg: string; text: string; icon: string }> =
         text: "text-green-400",
         icon: "📖",
     },
+    arxiv: {
+        bg: "bg-blue-500/10",
+        text: "text-blue-400",
+        icon: "📝",
+    },
 };
 
 const DEFAULT_STYLE = {

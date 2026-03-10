@@ -96,6 +96,20 @@ async def delete_vector(doc_id: str) -> None:
     )
 
 
+async def delete_all_vectors() -> None:
+    """Delete and recreate the collection to purge all vectors."""
+    s = get_settings()
+    client = get_client()
+    client.delete_collection(collection_name=s.qdrant_collection)
+    client.create_collection(
+        collection_name=s.qdrant_collection,
+        vectors_config=VectorParams(
+            size=s.embedding_dimensions,
+            distance=Distance.COSINE,
+        ),
+    )
+
+
 async def health_check() -> bool:
     """Return True if Qdrant is reachable."""
     try:
