@@ -1,7 +1,9 @@
 """Search router — hybrid, keyword-only, and semantic-only endpoints."""
 
+import time
 from fastapi import APIRouter, Query
 from app.services.hybrid_search import hybrid_search, keyword_only, semantic_only
+from app.services.analytics import analytics
 from app.models.search import SearchResponse, SearchHit
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -15,12 +17,17 @@ async def search(
     offset: int = Query(0, ge=0),
 ):
     """Run a hybrid, keyword, or semantic search."""
+    start = time.perf_counter()
+
     if mode == "keyword":
         results, total = await keyword_only(q, limit=limit, offset=offset)
     elif mode == "semantic":
         results, total = await semantic_only(q, limit=limit)
     else:
         results, total = await hybrid_search(q, limit=limit, offset=offset)
+
+    latency_ms = (time.perf_counter() - start) * 1000
+    analytics.record(query=q, mode=mode, total_found=total, latency_ms=latency_ms)
 
     return SearchResponse(
         query=q,

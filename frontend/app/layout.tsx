@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
     title: "Ryu Engine — AI-Powered Topic Search",
     description:
-        "A hybrid search engine combining keyword search, semantic similarity, and conversational AI for topic-specific knowledge discovery.",
+        "A hybrid search engine combining keyword search, semantic similarity, and AI-powered summarization for topic-specific knowledge discovery.",
 };
 
 export default function RootLayout({
@@ -35,10 +35,10 @@ export default function RootLayout({
                                 Search
                             </a>
                             <a
-                                href="/chat"
+                                href="/analytics"
                                 className="px-4 py-2 text-sm text-gray-400 hover:text-white rounded-lg hover:bg-surface-overlay transition-colors"
                             >
-                                Chat
+                                Analytics
                             </a>
                             <a
                                 href="/admin"

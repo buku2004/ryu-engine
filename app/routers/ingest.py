@@ -2,9 +2,9 @@
 
 import uuid
 from fastapi import APIRouter, HTTPException
-from app.models.document import RedditIngestRequest, DocumentIngest, IngestResponse
+from app.models.document import WikiIngestRequest, DocumentIngest, IngestResponse
 from app.services import (
-    reddit_fetcher,
+    wiki_fetcher,
     typesense_client,
     qdrant_client,
     embedding,
@@ -47,19 +47,19 @@ async def _index_documents(docs: list[dict]) -> int:
     return len(docs)
 
 
-@router.post("/reddit", response_model=IngestResponse)
-async def ingest_reddit(req: RedditIngestRequest):
-    """Fetch posts from a subreddit and index them."""
+@router.post("/wiki", response_model=IngestResponse)
+async def ingest_wiki(req: WikiIngestRequest):
+    """Fetch articles from a Fandom wiki and index them."""
     try:
-        posts = await reddit_fetcher.fetch_posts(
-            subreddit=req.subreddit,
+        articles = await wiki_fetcher.fetch_articles(
+            wiki=req.wiki,
             limit=req.limit,
-            sort=req.sort,
+            category=req.category,
         )
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Reddit fetch failed: {e}")
+        raise HTTPException(status_code=502, detail=f"Wiki fetch failed: {e}")
 
-    docs = [p.model_dump() for p in posts]
+    docs = [a.model_dump() for a in articles]
     count = await _index_documents(docs)
 
     return IngestResponse(

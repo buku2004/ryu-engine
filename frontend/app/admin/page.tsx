@@ -1,12 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { ingestReddit, getHealth, IngestResponse, HealthStatus } from "@/lib/api";
+import { ingestWiki, getHealth, IngestResponse, HealthStatus } from "@/lib/api";
+
+const CATEGORIES = [
+    { value: "", label: "All Articles" },
+    { value: "Blocks", label: "Blocks" },
+    { value: "Mobs", label: "Mobs" },
+    { value: "Items", label: "Items" },
+    { value: "Biomes", label: "Biomes" },
+    { value: "Gameplay", label: "Gameplay" },
+    { value: "Structures", label: "Structures" },
+    { value: "Enchantments", label: "Enchantments" },
+];
 
 export default function AdminPage() {
-    const [subreddit, setSubreddit] = useState("minecraft");
+    const [wiki, setWiki] = useState("minecraft");
     const [limit, setLimit] = useState(50);
-    const [sort, setSort] = useState("hot");
+    const [category, setCategory] = useState("");
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<IngestResponse | null>(null);
     const [health, setHealth] = useState<HealthStatus | null>(null);
@@ -17,7 +28,7 @@ export default function AdminPage() {
         setError("");
         setResult(null);
         try {
-            const data = await ingestReddit(subreddit, limit, sort);
+            const data = await ingestWiki(wiki, limit, category);
             setResult(data);
         } catch (err: any) {
             setError(err.message || "Ingestion failed");
@@ -75,25 +86,29 @@ export default function AdminPage() {
                 )}
             </div>
 
-            {/* Reddit ingestion */}
+            {/* Wiki ingestion */}
             <div className="glass-card p-6">
                 <h2 className="text-lg font-semibold text-white mb-6">
-                    Reddit Ingestion
+                    Wiki Ingestion
                 </h2>
+                <p className="text-gray-500 text-xs mb-5">
+                    Fetch articles from any Fandom wiki. Articles are split and indexed for hybrid search.
+                </p>
                 <div className="space-y-5">
                     <div>
                         <label className="block text-sm text-gray-400 mb-2">
-                            Subreddit
+                            Fandom Wiki
                         </label>
                         <div className="flex items-center glass-card px-4 py-2 rounded-xl">
-                            <span className="text-gray-500 text-sm mr-1">r/</span>
                             <input
-                                id="subreddit-input"
+                                id="wiki-input"
                                 type="text"
-                                value={subreddit}
-                                onChange={(e) => setSubreddit(e.target.value)}
+                                value={wiki}
+                                onChange={(e) => setWiki(e.target.value)}
                                 className="flex-1 bg-transparent text-white focus:outline-none text-sm"
+                                placeholder="minecraft"
                             />
+                            <span className="text-gray-500 text-xs ml-2">.fandom.com</span>
                         </div>
                     </div>
 
@@ -114,17 +129,19 @@ export default function AdminPage() {
                         </div>
                         <div>
                             <label className="block text-sm text-gray-400 mb-2">
-                                Sort
+                                Category
                             </label>
                             <select
-                                id="sort-select"
-                                value={sort}
-                                onChange={(e) => setSort(e.target.value)}
+                                id="category-select"
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
                                 className="w-full glass-card px-4 py-2 rounded-xl bg-surface-raised text-white focus:outline-none text-sm border-none"
                             >
-                                <option value="hot">Hot</option>
-                                <option value="new">New</option>
-                                <option value="top">Top</option>
+                                {CATEGORIES.map((c) => (
+                                    <option key={c.value} value={c.value}>
+                                        {c.label}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -132,7 +149,7 @@ export default function AdminPage() {
                     <button
                         id="ingest-btn"
                         onClick={handleIngest}
-                        disabled={loading || !subreddit.trim()}
+                        disabled={loading || !wiki.trim()}
                         className="w-full py-3 bg-gradient-to-r from-ryu-500 to-ryu-600 text-white font-medium rounded-xl
                      hover:from-ryu-400 hover:to-ryu-500 disabled:opacity-40 disabled:cursor-not-allowed
                      transition-all shadow-lg shadow-ryu-500/25"

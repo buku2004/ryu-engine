@@ -26,16 +26,8 @@ export interface SearchResponse {
     results: SearchHit[];
 }
 
-export interface ChatSource {
-    id: string;
-    title: string;
-    score: number;
-}
-
-export interface ChatResponse {
-    answer: string;
-    sources: ChatSource[];
-    session_id: string;
+export interface SummarizeResponse {
+    summary: string;
 }
 
 export interface IngestResponse {
@@ -48,6 +40,35 @@ export interface HealthStatus {
     typesense: string;
     qdrant: string;
     all_healthy: boolean;
+}
+
+export interface TopQuery {
+    query: string;
+    count: number;
+}
+
+export interface ModeBreakdown {
+    mode: string;
+    count: number;
+    percentage: number;
+}
+
+export interface QueryRecord {
+    query: string;
+    mode: string;
+    total_found: number;
+    latency_ms: number;
+    timestamp: string;
+}
+
+export interface AnalyticsSummary {
+    total_searches: number;
+    unique_queries: number;
+    avg_latency_ms: number;
+    top_queries: TopQuery[];
+    mode_breakdown: ModeBreakdown[];
+    recent_searches: QueryRecord[];
+    searches_over_time: Record<string, number>;
 }
 
 /* ---------- API Functions ---------- */
@@ -64,37 +85,39 @@ export async function search(
     return res.json();
 }
 
-export async function chat(
-    message: string,
-    sessionId?: string
-): Promise<ChatResponse> {
-    const res = await fetch(`${API}/chat`, {
+export async function summarize(
+    title: string,
+    body: string
+): Promise<SummarizeResponse> {
+    const res = await fetch(`${API}/summarize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            message,
-            session_id: sessionId,
-            search_context: true,
-        }),
+        body: JSON.stringify({ title, body }),
     });
     if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.detail || `Chat failed: ${res.statusText}`);
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.detail || `Summarization failed: ${res.statusText}`);
     }
     return res.json();
 }
 
-export async function ingestReddit(
-    subreddit: string,
+export async function getAnalytics(): Promise<AnalyticsSummary> {
+    const res = await fetch(`${API}/analytics`);
+    if (!res.ok) throw new Error(`Analytics fetch failed: ${res.statusText}`);
+    return res.json();
+}
+
+export async function ingestWiki(
+    wiki: string,
     limit: number = 50,
-    sort: string = "hot"
+    category: string = ""
 ): Promise<IngestResponse> {
-    const res = await fetch(`${API}/ingest/reddit`, {
+    const res = await fetch(`${API}/ingest/wiki`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subreddit, limit, sort }),
+        body: JSON.stringify({ wiki, limit, category }),
     });
-    if (!res.ok) throw new Error(`Ingest failed: ${res.statusText}`);
+    if (!res.ok) throw new Error(`Wiki ingest failed: ${res.statusText}`);
     return res.json();
 }
 

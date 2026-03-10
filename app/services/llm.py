@@ -14,6 +14,12 @@ If the context does not contain enough information, say so honestly.
 Always cite which source documents support your answer.
 Keep answers clear, concise, and well-structured."""
 
+SUMMARY_PROMPT = """You are Ryu, an AI assistant that creates concise summaries.
+Summarize the following document clearly and accurately.
+Highlight the key points, main arguments, and any conclusions.
+Keep the summary to 3-5 sentences unless the content is very long.
+Do not add information that is not in the original text."""
+
 
 def _get_openai_client() -> OpenAI:
     global _openai_client
@@ -64,6 +70,19 @@ async def generate_answer(
     if s.llm_provider == "gemini":
         return await _call_gemini(messages, s)
 
+    return await _call_openai(messages, s)
+
+
+async def generate_summary(title: str, body: str) -> str:
+    """Generate a concise summary of a document using the LLM."""
+    s = get_settings()
+    content = f"Title: {title}\n\nContent:\n{body[:4000]}"
+    messages = [
+        {"role": "system", "content": SUMMARY_PROMPT},
+        {"role": "user", "content": content},
+    ]
+    if s.llm_provider == "gemini":
+        return await _call_gemini(messages, s)
     return await _call_openai(messages, s)
 
 

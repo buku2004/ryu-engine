@@ -21,12 +21,12 @@ class DocumentIngest(BaseModel):
     documents: list[Document]
 
 
-class RedditIngestRequest(BaseModel):
-    """Request body for Reddit ingestion endpoint."""
+class WikiIngestRequest(BaseModel):
+    """Request body for wiki ingestion endpoint."""
 
-    subreddit: str = "minecraft"
+    wiki: str = Field(default="minecraft", description="Fandom wiki subdomain (e.g. minecraft, zelda)")
     limit: int = Field(default=50, ge=1, le=500)
-    sort: str = Field(default="hot", pattern="^(hot|new|top)$")
+    category: str = Field(default="", description="Optional category to filter articles (e.g. Blocks, Mobs)")
 
 
 class IngestResponse(BaseModel):
