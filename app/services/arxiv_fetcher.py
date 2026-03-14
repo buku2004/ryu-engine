@@ -33,6 +33,11 @@ CATEGORIES: dict[str, str] = {
     "econ": "Economics",
 }
 
+ARXIV_ID_PATTERN = re.compile(
+    r"ArXiv ID:\s*([A-Za-z0-9./\-]+(?:v\d+)?)",
+    re.IGNORECASE,
+)
+
 
 def _make_id(arxiv_id: str) -> str:
     """Generate a stable document ID from ArXiv paper ID."""
@@ -42,6 +47,17 @@ def _make_id(arxiv_id: str) -> str:
 def _clean_text(text: str) -> str:
     """Collapse whitespace and strip."""
     return re.sub(r"\s+", " ", text).strip()
+
+
+def extract_arxiv_id_from_body(body: str) -> str | None:
+    """Extract the ArXiv ID from stored document metadata text."""
+    match = ARXIV_ID_PATTERN.search(body or "")
+    return match.group(1) if match else None
+
+
+def build_pdf_url(arxiv_id: str) -> str:
+    """Build a direct PDF URL for an ArXiv paper."""
+    return f"https://arxiv.org/pdf/{arxiv_id}.pdf"
 
 
 async def fetch_papers(
@@ -136,6 +152,7 @@ def _parse_response(xml_text: str) -> list[Document]:
                 author=author_str,
                 created_at=0,
                 source="arxiv",
+                pdf_url=build_pdf_url(arxiv_id),
             )
         )
 

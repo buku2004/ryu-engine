@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import SourceBadge from "./SourceBadge";
-import { summarize } from "@/lib/api";
+import { summarizePaper } from "@/lib/api";
 
 interface Props {
     id: string;
@@ -10,37 +10,51 @@ interface Props {
     body: string;
     author: string;
     source: string;
+    pdf_url: string;
     score: number;
     match_type: string;
 }
 
 export default function ResultCard({
+    id,
     title,
     body,
     author,
     source,
+    pdf_url,
     score,
     match_type,
 }: Props) {
     const [summary, setSummary] = useState<string | null>(null);
-    const [summaryLoading, setSummaryLoading] = useState(false);
+    const [paperSummaryLoading, setPaperSummaryLoading] = useState(false);
     const [summaryError, setSummaryError] = useState("");
+    const [summaryMeta, setSummaryMeta] = useState<{
+        label: string;
+        fromCache?: boolean;
+    } | null>(null);
     const [expanded, setExpanded] = useState(false);
 
-    const handleSummarize = async () => {
+    const handlePaperSummarize = async () => {
         if (summary) {
             setSummary(null);
+            setSummaryMeta(null);
             return;
         }
-        setSummaryLoading(true);
+        setPaperSummaryLoading(true);
         setSummaryError("");
         try {
-            const res = await summarize(title, body);
+            const res = await summarizePaper(id);
             setSummary(res.summary);
-        } catch {
-            setSummaryError("Summarization failed. Try again.");
+            setSummaryMeta({
+                label: "Paper Summary",
+                fromCache: res.from_cache,
+            });
+        } catch (err) {
+            const message =
+                err instanceof Error ? err.message : "Paper summarization failed. Try again.";
+            setSummaryError(message);
         } finally {
-            setSummaryLoading(false);
+            setPaperSummaryLoading(false);
         }
     };
 
@@ -78,7 +92,14 @@ export default function ResultCard({
                         <div className="w-5 h-5 rounded-md bg-gradient-to-br from-ryu-400 to-ryu-600 flex items-center justify-center">
                             <span className="text-[10px] text-white font-bold">竜</span>
                         </div>
-                        <span className="text-xs text-ryu-400 font-medium">AI Summary</span>
+                        <span className="text-xs text-ryu-400 font-medium">
+                            {summaryMeta?.label || "Paper Summary"}
+                        </span>
+                        {summaryMeta?.fromCache && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">
+                                cached
+                            </span>
+                        )}
                     </div>
                     <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
                         {summary}
@@ -101,28 +122,32 @@ export default function ResultCard({
                     </span>
                 )}
 
-                {/* Summarize button */}
-                <button
-                    onClick={handleSummarize}
-                    disabled={summaryLoading}
-                    className="text-xs px-3 py-1 rounded-lg bg-ryu-600/10 text-ryu-400 hover:bg-ryu-600/20 transition-colors disabled:opacity-40 flex items-center gap-1.5"
-                >
-                    {summaryLoading ? (
-                        <>
-                            <div className="w-3 h-3 border border-ryu-400/30 border-t-ryu-400 rounded-full animate-spin" />
-                            Summarizing…
-                        </>
-                    ) : summary ? (
-                        "Hide Summary"
-                    ) : (
-                        <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Summarize
-                        </>
-                    )}
-                </button>
+                {source === "arxiv" && (
+                    <>
+                        <button
+                            onClick={handlePaperSummarize}
+                            disabled={paperSummaryLoading}
+                            className="text-xs px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors disabled:opacity-40"
+                        >
+                            {paperSummaryLoading
+                                ? "Reading PDF..."
+                                : summary
+                                  ? "Hide Summary"
+                                  : "Summarize PDF"}
+                        </button>
+
+                        {pdf_url && (
+                            <a
+                                href={pdf_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs px-3 py-1 rounded-lg bg-surface-overlay text-gray-300 hover:text-white transition-colors"
+                            >
+                                Open PDF
+                            </a>
+                        )}
+                    </>
+                )}
 
                 {author && (
                     <span className="text-xs text-gray-500 ml-auto">

@@ -76,6 +76,7 @@ async def search(
             "body": hit.payload.get("body", ""),
             "author": hit.payload.get("author", ""),
             "source": hit.payload.get("source", ""),
+            "pdf_url": hit.payload.get("pdf_url", ""),
             "score": hit.score,
         }
         for hit in results

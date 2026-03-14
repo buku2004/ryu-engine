@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     hybrid_k: int = 60  # RRF constant
     default_search_limit: int = 10
 
+    # PDF summarization guardrails (free-tier friendly)
+    pdf_summary_max_input_chars: int = 8000
+    pdf_summary_fetch_timeout_sec: int = 25
+    pdf_summary_max_calls_per_hour: int = 20
+    pdf_summary_cache_ttl_sec: int = 86400
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

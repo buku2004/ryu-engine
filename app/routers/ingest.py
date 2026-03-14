@@ -39,6 +39,7 @@ async def _index_documents(docs: list[dict]) -> int:
             "body": d["body"][:1000],  # truncate body in payload
             "author": d.get("author", ""),
             "source": d.get("source", ""),
+            "pdf_url": d.get("pdf_url", ""),
         }
         for d in docs
     ]
@@ -111,6 +112,7 @@ async def list_documents(
             "body": h["document"].get("body", "")[:200],
             "author": h["document"].get("author", ""),
             "source": h["document"].get("source", ""),
+            "pdf_url": h["document"].get("pdf_url", ""),
         }
         for h in raw.get("hits", [])
     ]

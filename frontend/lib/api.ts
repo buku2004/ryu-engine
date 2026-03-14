@@ -15,6 +15,7 @@ export interface SearchHit {
     body: string;
     author: string;
     source: string;
+    pdf_url: string;
     score: number;
     match_type: string;
 }
@@ -26,8 +27,10 @@ export interface SearchResponse {
     results: SearchHit[];
 }
 
-export interface SummarizeResponse {
+export interface PaperSummarizeResponse {
     summary: string;
+    from_cache: boolean;
+    mode: string;
 }
 
 export interface IngestResponse {
@@ -85,18 +88,15 @@ export async function search(
     return res.json();
 }
 
-export async function summarize(
-    title: string,
-    body: string
-): Promise<SummarizeResponse> {
-    const res = await fetch(`${API}/summarize`, {
+export async function summarizePaper(docId: string): Promise<PaperSummarizeResponse> {
+    const res = await fetch(`${API}/summarize/paper`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, body }),
+        body: JSON.stringify({ doc_id: docId }),
     });
     if (!res.ok) {
         const data = await res.json().catch(() => null);
-        throw new Error(data?.detail || `Summarization failed: ${res.statusText}`);
+        throw new Error(data?.detail || `Paper summarization failed: ${res.statusText}`);
     }
     return res.json();
 }
@@ -134,6 +134,7 @@ export interface BrowseDocument {
     body: string;
     author: string;
     source: string;
+    pdf_url: string;
 }
 
 export interface BrowseResponse {

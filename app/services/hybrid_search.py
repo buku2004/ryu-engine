@@ -1,8 +1,22 @@
 """Hybrid search — Reciprocal Rank Fusion of keyword + vector results."""
 
 from app.services import typesense_client, qdrant_client, embedding
+from app.services.arxiv_fetcher import build_pdf_url, extract_arxiv_id_from_body
 from app.models.search import SearchHit
 from app.config import get_settings
+
+
+def _resolve_pdf_url(doc: dict) -> str:
+    """Return a PDF URL for ArXiv documents, including older indexed docs."""
+    pdf_url = doc.get("pdf_url", "")
+    if pdf_url:
+        return pdf_url
+    if doc.get("source") != "arxiv":
+        return ""
+    arxiv_id = extract_arxiv_id_from_body(doc.get("body", ""))
+    if not arxiv_id:
+        return ""
+    return build_pdf_url(arxiv_id)
 
 
 async def hybrid_search(
@@ -40,6 +54,7 @@ async def hybrid_search(
                 "body": doc.get("body", ""),
                 "author": doc.get("author", ""),
                 "source": doc.get("source", ""),
+                "pdf_url": _resolve_pdf_url(doc),
             }
         )
 
@@ -53,6 +68,7 @@ async def hybrid_search(
                 "body": hit.get("body", ""),
                 "author": hit.get("author", ""),
                 "source": hit.get("source", ""),
+                "pdf_url": _resolve_pdf_url(hit),
             }
         )
 
@@ -92,6 +108,7 @@ async def hybrid_search(
                 body=doc["body"],
                 author=doc.get("author", ""),
                 source=doc.get("source", ""),
+                pdf_url=doc.get("pdf_url", ""),
                 score=round(scores[doc_id], 4),
                 match_type=mt,
             )
@@ -112,6 +129,7 @@ async def keyword_only(
             body=h["document"].get("body", ""),
             author=h["document"].get("author", ""),
             source=h["document"].get("source", ""),
+            pdf_url=_resolve_pdf_url(h["document"]),
             score=h.get("text_match_info", {}).get("score", 0),
             match_type="keyword",
         )
@@ -133,6 +151,7 @@ async def semantic_only(
             body=h.get("body", ""),
             author=h.get("author", ""),
             source=h.get("source", ""),
+            pdf_url=_resolve_pdf_url(h),
             score=round(h["score"], 4),
             match_type="semantic",
         )

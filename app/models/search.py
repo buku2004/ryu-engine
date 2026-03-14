@@ -21,6 +21,7 @@ class SearchHit(BaseModel):
     body: str
     author: str = ""
     source: str = ""
+    pdf_url: str = ""
     score: float = 0.0
     match_type: str = ""  # "keyword", "semantic", "keyword+semantic"
 

@@ -36,6 +36,7 @@ COLLECTION_SCHEMA = {
         {"name": "author", "type": "string", "facet": True},
         {"name": "created_at", "type": "int64", "facet": True},
         {"name": "source", "type": "string", "facet": True},
+        {"name": "pdf_url", "type": "string", "optional": True},
     ],
 }
 
@@ -45,7 +46,16 @@ async def ensure_collection() -> None:
     s = get_settings()
     client = get_client()
     try:
-        client.collections[s.typesense_collection].retrieve()
+        existing = client.collections[s.typesense_collection].retrieve()
+        existing_fields = {
+            field.get("name")
+            for field in existing.get("fields", [])
+            if field.get("name")
+        }
+        if "pdf_url" not in existing_fields:
+            client.collections[s.typesense_collection].update(
+                {"fields": [{"name": "pdf_url", "type": "string", "optional": True}]}
+            )
     except typesense.exceptions.ObjectNotFound:
         schema = {**COLLECTION_SCHEMA, "name": s.typesense_collection}
         client.collections.create(schema)
@@ -93,6 +103,13 @@ async def list_documents(limit: int = 20, offset: int = 0) -> dict:
         "sort_by": "created_at:desc",
     }
     return client.collections[s.typesense_collection].documents.search(params)
+
+
+async def get_document(doc_id: str) -> dict:
+    """Fetch a single document by ID from Typesense."""
+    s = get_settings()
+    client = get_client()
+    return client.collections[s.typesense_collection].documents[doc_id].retrieve()
 
 
 async def delete_all_documents() -> int:

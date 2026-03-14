@@ -1,16 +1,17 @@
-"""Pydantic models for the document summarization endpoint."""
+"""Pydantic models for PDF-based document summarization."""
 
 from pydantic import BaseModel
 
 
-class SummarizeRequest(BaseModel):
-    """Request body for the /summarize endpoint."""
+class PaperSummarizeRequest(BaseModel):
+    """Request body for on-demand full-paper summarization."""
 
-    title: str
-    body: str
+    doc_id: str
 
 
-class SummarizeResponse(BaseModel):
-    """Response from the /summarize endpoint."""
+class PaperSummarizeResponse(BaseModel):
+    """Response body for full-paper summarization."""
 
     summary: str
+    from_cache: bool = False
+    mode: str = "pdf"

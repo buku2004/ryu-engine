@@ -1,7 +1,6 @@
 """Pydantic models for documents."""
 
 from pydantic import BaseModel, Field
-from typing import Optional
 
 
 class Document(BaseModel):
@@ -13,6 +12,7 @@ class Document(BaseModel):
     author: str = ""
     created_at: int = 0
     source: str = "unknown"
+    pdf_url: str = ""
 
 
 class DocumentIngest(BaseModel):

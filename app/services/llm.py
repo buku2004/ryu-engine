@@ -73,10 +73,10 @@ async def generate_answer(
     return await _call_openai(messages, s)
 
 
-async def generate_summary(title: str, body: str) -> str:
+async def generate_summary(title: str, body: str, max_chars: int = 4000) -> str:
     """Generate a concise summary of a document using the LLM."""
     s = get_settings()
-    content = f"Title: {title}\n\nContent:\n{body[:4000]}"
+    content = f"Title: {title}\n\nContent:\n{body[:max_chars]}"
     messages = [
         {"role": "system", "content": SUMMARY_PROMPT},
         {"role": "user", "content": content},
