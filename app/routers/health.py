@@ -1,7 +1,8 @@
 """Health-check router."""
 
 from fastapi import APIRouter
-from app.services import typesense_client, qdrant_client
+
+from app.services import qdrant_client, typesense_client
 
 router = APIRouter(prefix="/health", tags=["health"])
 

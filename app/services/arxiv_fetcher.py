@@ -6,6 +6,7 @@ import re
 import xml.etree.ElementTree as ET
 
 import httpx
+
 from app.models.document import Document
 
 log = logging.getLogger(__name__)

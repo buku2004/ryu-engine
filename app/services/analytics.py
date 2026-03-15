@@ -2,7 +2,7 @@
 
 import threading
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.models.analytics import (
     AnalyticsSummary,
@@ -30,7 +30,7 @@ class SearchAnalytics:
                     "mode": mode,
                     "total_found": total_found,
                     "latency_ms": round(latency_ms, 2),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
             )
 

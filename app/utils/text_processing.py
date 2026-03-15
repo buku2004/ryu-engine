@@ -1,17 +1,17 @@
 """Text processing utilities — cleaning, chunking, normalization."""
 
-import re
 import html
+import re
 
 
 def clean_text(text: str) -> str:
     """Clean raw text from Reddit or other sources."""
     # Decode HTML entities
     text = html.unescape(text)
+    # Remove image/media markdown (must run before link stripping)
+    text = re.sub(r"!\[([^\]]*)\]\([^)]+\)", "", text)
     # Strip markdown links but keep the text
     text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
-    # Remove image/media markdown
-    text = re.sub(r"!\[([^\]]*)\]\([^)]+\)", "", text)
     # Collapse multiple whitespace/newlines
     text = re.sub(r"\s+", " ", text)
     return text.strip()

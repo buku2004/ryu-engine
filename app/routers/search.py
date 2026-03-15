@@ -1,10 +1,12 @@
 """Search router — hybrid, keyword-only, and semantic-only endpoints."""
 
 import time
+
 from fastapi import APIRouter, Query
-from app.services.hybrid_search import hybrid_search, keyword_only, semantic_only
+
+from app.models.search import SearchResponse
 from app.services.analytics import analytics
-from app.models.search import SearchResponse, SearchHit
+from app.services.hybrid_search import hybrid_search, keyword_only, semantic_only
 
 router = APIRouter(prefix="/search", tags=["search"])
 

@@ -1,9 +1,9 @@
 """Hybrid search — Reciprocal Rank Fusion of keyword + vector results."""
 
-from app.services import typesense_client, qdrant_client, embedding
-from app.services.arxiv_fetcher import build_pdf_url, extract_arxiv_id_from_body
-from app.models.search import SearchHit
 from app.config import get_settings
+from app.models.search import SearchHit
+from app.services import embedding, qdrant_client, typesense_client
+from app.services.arxiv_fetcher import build_pdf_url, extract_arxiv_id_from_body
 
 
 def _resolve_pdf_url(doc: dict) -> str:

@@ -1,6 +1,7 @@
 """Summarization router — RAG-powered document summarization."""
 
 import logging
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -8,12 +9,12 @@ from app.models.summarize import (
     PaperSummarizeRequest,
     PaperSummarizeResponse,
 )
+from app.services import typesense_client
 from app.services.paper_summarizer import (
     PdfSummaryError,
     PdfSummaryRateLimitError,
     summarize_arxiv_pdf,
 )
-from app.services import typesense_client
 
 log = logging.getLogger(__name__)
 
@@ -45,10 +46,10 @@ async def summarize_paper(req: PaperSummarizeRequest):
         return JSONResponse(status_code=429, content={"detail": str(e)})
     except PdfSummaryError as e:
         error_msg = str(e)
-        if "429" in error_msg or "quota" in error_msg.lower():
-            detail = "LLM API quota exceeded. Please check your API key and billing."
+        if "429" in error_msg or "quota" in error_msg.lower() or "resource" in error_msg.lower():
+            detail = "LLM quota exceeded. The Gemini free-tier limit may have been reached — wait a few minutes or check your API key billing at https://aistudio.google.com."
             status = 429
-        elif "401" in error_msg or "auth" in error_msg.lower():
+        elif "401" in error_msg or "403" in error_msg or "auth" in error_msg.lower() or "api key" in error_msg.lower():
             detail = "LLM API authentication failed. Please check your API key."
             status = 401
         else:

@@ -1,7 +1,7 @@
 """Pydantic models for search requests and responses."""
 
+
 from pydantic import BaseModel, Field
-from typing import Optional
 
 
 class SearchRequest(BaseModel):

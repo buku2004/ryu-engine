@@ -1,13 +1,16 @@
 """Document ingestion router."""
 
+import contextlib
 import uuid
+
 from fastapi import APIRouter, HTTPException
+
 from app.models.document import ArxivIngestRequest, DocumentIngest, IngestResponse
 from app.services import (
     arxiv_fetcher,
-    typesense_client,
-    qdrant_client,
     embedding,
+    qdrant_client,
+    typesense_client,
 )
 from app.utils.text_processing import prepare_embedding_text
 
@@ -59,7 +62,7 @@ async def ingest_arxiv(req: ArxivIngestRequest):
             sort_by=req.sort_by,
         )
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"ArXiv fetch failed: {e}")
+        raise HTTPException(status_code=502, detail=f"ArXiv fetch failed: {e}") from e
 
     docs = [a.model_dump() for a in articles]
     count = await _index_documents(docs)
@@ -87,14 +90,10 @@ async def ingest_documents(req: DocumentIngest):
 @router.delete("/documents/{doc_id}")
 async def delete_document(doc_id: str):
     """Remove a document from both indexes."""
-    try:
+    with contextlib.suppress(Exception):
         await typesense_client.delete_document(doc_id)
-    except Exception:
-        pass  # may not exist in Typesense
-    try:
+    with contextlib.suppress(Exception):
         await qdrant_client.delete_vector(doc_id)
-    except Exception:
-        pass
     return {"status": "deleted", "doc_id": doc_id}
 
 
@@ -128,12 +127,8 @@ async def list_documents(
 async def purge_all_documents():
     """Delete ALL documents from both indexes."""
     ts_count = 0
-    try:
+    with contextlib.suppress(Exception):
         ts_count = await typesense_client.delete_all_documents()
-    except Exception:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         await qdrant_client.delete_all_vectors()
-    except Exception:
-        pass
     return {"status": "purged", "typesense_deleted": ts_count}

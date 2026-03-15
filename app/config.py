@@ -1,7 +1,8 @@
 """Application configuration loaded from environment variables."""
 
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -33,9 +34,6 @@ class Settings(BaseSettings):
     openai_chat_model: str = "gpt-4"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
-
-    # Reddit
-    reddit_user_agent: str = "ryu-engine/1.0"
 
     # Search
     hybrid_k: int = 60  # RRF constant

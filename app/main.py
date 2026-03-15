@@ -3,12 +3,13 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import health, ingest, search, analytics, summarize
-from app.services import typesense_client, qdrant_client
+from app.routers import analytics, health, ingest, search, summarize
+from app.services import qdrant_client, typesense_client
 
 log = logging.getLogger(__name__)
 
